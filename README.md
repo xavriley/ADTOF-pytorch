@@ -7,6 +7,13 @@ This repo is a pytorch port of [ADTOF](https://github.com/MZehren/ADTOF), by Zeh
 - M. Zehren, M. Alunno, and P. Bientinesi, “ADTOF: A large dataset of non-synthetic music for automatic drum transcription,” in Proceedings of the 22st International Society for Music Information Retrieval Conference, Online, 2021, pp. 818–824.
 - Zehren, M.; Alunno, M.; Bientinesi, P. High-Quality and Reproducible Automatic Drum Transcription from Crowdsourced Data. Signals 2023, 4, 768-787. https://doi.org/10.3390/signals4040042
 
+## Performance comparison on [MDBDrums++](https://github.com/xavriley/MDBDrumsPlusPlus) dataset
+
+| Method | Recall | Precision | F-measure |
+| --- | --- | --- | --- |
+| ADTOF (original) | 88.68 | 89.90 | 88.74 |
+| ADTOF-pytorch | 88.26 | 89.83 | 88.51 |
+
 ## Converting the Keras weights to Pytorch
 
 The original implementation was in Keras/Tensorflow and used madmom for processing the audio into mel-spectrograms. Here we reimplement the model in Pytorch and convert the weights directly from the offically released weights (see `convert_weights.py`).
