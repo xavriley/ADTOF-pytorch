@@ -1,0 +1,2 @@
+[console_scripts]
+adtof = adtof_pytorch.cli:main

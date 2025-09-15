@@ -1,0 +1,91 @@
+Metadata-Version: 2.4
+Name: adtof-pytorch
+Version: 0.1.0
+Summary: PyTorch ADTOF Frame_RNN drum transcription with CLI and programmatic API
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: torch
+Requires-Dist: librosa
+Requires-Dist: pretty_midi
+Requires-Dist: numpy
+Provides-Extra: dev
+Requires-Dist: matplotlib>=3.5; extra == "dev"
+
+# ADTOF PyTorch
+
+Automatic transcription of drum audio to MIDI, using minimal dependencies (torch, librosa, pretty_midi).
+
+This repo is a pytorch port of [ADTOF](https://github.com/MZehren/ADTOF), by Zehren et al. described in these papers:
+
+- M. Zehren, M. Alunno, and P. Bientinesi, “ADTOF: A large dataset of non-synthetic music for automatic drum transcription,” in Proceedings of the 22st International Society for Music Information Retrieval Conference, Online, 2021, pp. 818–824.
+- Zehren, M.; Alunno, M.; Bientinesi, P. High-Quality and Reproducible Automatic Drum Transcription from Crowdsourced Data. Signals 2023, 4, 768-787. https://doi.org/10.3390/signals4040042
+
+## Converting the Keras weights to Pytorch
+
+The original implementation was in Keras/Tensorflow and used madmom for processing the audio into mel-spectrograms. Here we reimplement the model in Pytorch and convert the weights directly from the offically released weights (see `convert_weights.py`).
+
+An exact conversion of weights between the two methods seems to be difficult, however a layer-wise comparison shows that the newer Pytorch model is close to the original:
+
+```
+Comparison with original Keras model:
+  Shapes TF (1, 100, 5) vs PT (1, 100, 5)
+  MAE: 0.000254
+  MSE: 0.000000
+  Max |diff|: 0.002278
+
+Layer-by-layer comparison:
+  sequential: MAE=0.027325 MSE=0.008597 MAX=0.581940 shape_tf=(1, 100, 10, 64) shape_pt=(1, 100, 10, 64)
+  reshape: MAE=0.027325 MSE=0.008597 MAX=0.581940 shape_tf=(1, 100, 640) shape_pt=(1, 100, 640)
+  bidirectional_0: MAE=0.002568 MSE=0.000273 MAX=0.266914 shape_tf=(1, 100, 120) shape_pt=(1, 100, 120)
+  bidirectional_1: MAE=0.006298 MSE=0.000103 MAX=0.091772 shape_tf=(1, 100, 120) shape_pt=(1, 100, 120)
+  bidirectional_2: MAE=0.005389 MSE=0.000080 MAX=0.070519 shape_tf=(1, 100, 120) shape_pt=(1, 100, 120)
+  output: MAE=0.000254 MSE=0.000000 MAX=0.002278 shape_tf=(1, 100, 5) shape_pt=(1, 100, 5)
+
+CNN detailed comparisons:
+  block0_conv1_act: MAE=0.000000 MSE=0.000000 MAX=0.000000 shape_tf=(1, 100, 84, 32) shape_pt=(1, 100, 84, 32)
+  block0_bn1: MAE=0.000000 MSE=0.000000 MAX=0.000020 shape_tf=(1, 100, 84, 32) shape_pt=(1, 100, 84, 32)
+  block0_conv2_act: MAE=0.000002 MSE=0.000000 MAX=0.000091 shape_tf=(1, 100, 84, 32) shape_pt=(1, 100, 84, 32)
+  block0_bn2: MAE=0.000005 MSE=0.000000 MAX=0.000595 shape_tf=(1, 100, 84, 32) shape_pt=(1, 100, 84, 32)
+  block0_pool: MAE=0.000009 MSE=0.000000 MAX=0.000595 shape_tf=(1, 100, 28, 32) shape_pt=(1, 100, 28, 32)
+  block1_conv1_act: MAE=0.000012 MSE=0.000000 MAX=0.000433 shape_tf=(1, 100, 28, 64) shape_pt=(1, 100, 28, 64)
+  block1_bn1: MAE=0.000008 MSE=0.000000 MAX=0.000317 shape_tf=(1, 100, 28, 64) shape_pt=(1, 100, 28, 64)
+  block1_conv2_act: MAE=0.000013 MSE=0.000000 MAX=0.000256 shape_tf=(1, 100, 28, 64) shape_pt=(1, 100, 28, 64)
+  block1_bn2: MAE=0.000003 MSE=0.000000 MAX=0.000071 shape_tf=(1, 100, 28, 64) shape_pt=(1, 100, 28, 64)
+  block1_pool: MAE=0.027325 MSE=0.008597 MAX=0.581940 shape_tf=(1, 100, 10, 64) shape_pt=(1, 100, 10, 64)
+```
+
+## Audio pre-processing without madmom dependency
+
+In addition, the audio preprocessing code is reimplemented to remove the dependency on madmom which is a large, general purpose audio processing library. Again, an exact conversion was prevented as librosa and madmom use different underlying FFT implementations but the outputs appear to be sufficiently close for transcription to work:
+
+```
+Shape match: True
+N bins match: True
+MSE: 0.001785
+Max diff: 0.976008
+```
+
+## Notes
+- Model weights are bundled and loaded by default; you can override with `--weights`.
+- Debug/visualization scripts are in `examples/` and require `matplotlib` (install via `[dev]`).
+
+## Installation
+
+Clone this repo then `pip install -e .` or `pip install -e .[dev]`
+
+## Usage
+
+### CLI
+
+```bash
+adtof --audio input.wav --out output.mid \
+  --thresholds 0.22,0.24,0.32,0.22,0.30 --fps 100 --device cuda
+```
+
+### Programmatic API:
+
+```python
+from adtof_pytorch import transcribe_to_midi
+
+transcribe_to_midi("input.wav", "output.mid")
+```

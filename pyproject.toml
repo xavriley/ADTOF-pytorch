@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adtof-pytorch"
+version = "0.1.0"
+description = "PyTorch ADTOF Frame_RNN drum transcription with CLI and programmatic API"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "torch",
+  "librosa",
+  "pretty_midi",
+  "numpy",
+]
+
+[project.scripts]
+adtof = "adtof_pytorch.cli:main"
+
+[project.optional-dependencies]
+dev = [
+  "matplotlib>=3.5",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+adtof_pytorch = ["data/*.pth"]

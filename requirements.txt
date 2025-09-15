@@ -1,0 +1,4 @@
+torch
+librosa
+pretty_midi
+numpy

@@ -1,0 +1,7 @@
+torch
+librosa
+pretty_midi
+numpy
+
+[dev]
+matplotlib>=3.5
