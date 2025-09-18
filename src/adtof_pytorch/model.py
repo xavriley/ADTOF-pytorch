@@ -227,7 +227,7 @@ class ADTOFFrameRNN(nn.Module):
 
 
 def create_frame_rnn_model(n_bins: int = 168) -> ADTOFFrameRNN:
-    use_keras_gru_env = os.environ.get('ADTOF_USE_KERAS_GRU', '1')
+    use_keras_gru_env = os.environ.get('ADTOF_USE_KERAS_GRU', '0')
     use_keras_gru = use_keras_gru_env.strip() in ('1', 'true', 'True')
     return ADTOFFrameRNN(
         n_bins=n_bins,
